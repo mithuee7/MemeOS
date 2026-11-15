@@ -2,10 +2,13 @@ import { Env as AccountsEnv, addParent, createAccount, json, listAccounts, remov
 import { select } from "./supabase";
 import { WorkspaceEnv } from "./workspace";
 import { routeWorkspace } from "./workspace-routes";
+import { routeAutomation } from "./automation-routes";
+import { tick, AutomationEnv } from "./automation";
+import { SchedulerEnv } from "./scheduler";
 import { IntegrationsEnv, checkIntegration, deleteIntegration, listIntegrations, saveIntegration } from "./integrations";
 import { ReferencesEnv, createReference, deleteReference, listReferences, runReferenceDiscovery, updateReference } from "./references";
 
-export interface Env extends AccountsEnv, ReferencesEnv, IntegrationsEnv, WorkspaceEnv {
+export interface Env extends AccountsEnv, ReferencesEnv, IntegrationsEnv, WorkspaceEnv, AutomationEnv, SchedulerEnv {
   ASSETS: Fetcher;
 }
 
@@ -61,6 +64,8 @@ export default {
         return json({ error: "method_not_allowed" }, 405);
       }
 
+      const automation = await routeAutomation(request, env, pathname, method);
+      if (automation) return automation;
       const workspace = await routeWorkspace(request, env, pathname, method);
       if (workspace) return workspace;
 
@@ -82,7 +87,8 @@ export default {
     }
   },
 
-  async scheduled(_controller: ScheduledController, _env: Env): Promise<void> {
-    // Automation engine entry point (Stage 7). Not yet implemented.
+  async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
+    // Cron entry point: queues due discovery and runs a batch of jobs. Respects global pause.
+    await tick(env, new Date());
   },
 } satisfies ExportedHandler<Env>;

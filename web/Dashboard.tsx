@@ -4,6 +4,8 @@ import { ApiError, api } from "./api";
 import { SettingsPage } from "./Settings";
 import { DiscoveryPage } from "./Discovery";
 import { ApprovalQueue, ContentLibrary, SystemHealth } from "./Workspace";
+import { SchedulerPage } from "./Scheduler";
+import { AutomationPage } from "./Automation";
 
 interface Account {
   id: number;
@@ -14,7 +16,7 @@ interface Account {
   created_at: string;
 }
 
-type Page = "overview" | "accounts" | "discovery" | "queue" | "library" | "health" | "settings";
+type Page = "overview" | "accounts" | "discovery" | "queue" | "library" | "scheduler" | "automation" | "health" | "settings";
 
 export function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => void }) {
   const [page, setPage] = useState<Page>("accounts");
@@ -56,10 +58,10 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
           <NavItem label="Approval Queue" active={page === "queue"} onClick={() => setPage("queue")} />
           <NavItem label="Content Library" active={page === "library"} onClick={() => setPage("library")} />
           <NavItem label="Meme Creator" disabled />
-          <NavItem label="Scheduler" disabled />
+          <NavItem label="Scheduler" active={page === "scheduler"} onClick={() => setPage("scheduler")} />
           <NavItem label="Publishing History" disabled />
           <NavItem label="Analytics" disabled />
-          <NavItem label="Automation" disabled />
+          <NavItem label="Automation" active={page === "automation"} onClick={() => setPage("automation")} />
           <NavItem label="System Health" active={page === "health"} onClick={() => setPage("health")} />
           <NavItem label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
         </nav>
@@ -77,6 +79,8 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
         {page === "queue" && <ApprovalQueue />}
         {page === "library" && <ContentLibrary />}
         {page === "health" && <SystemHealth />}
+        {page === "scheduler" && <SchedulerPage />}
+        {page === "automation" && <AutomationPage />}
       </main>
     </div>
   );
