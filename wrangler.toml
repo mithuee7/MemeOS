@@ -1,0 +1,17 @@
+name = "memeos"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "MEMEOS_DB"
+database_name = "memeos"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "memeos-media"
+
+[triggers]
+crons = ["*/15 * * * *"]
