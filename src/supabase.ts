@@ -8,6 +8,8 @@ export interface SupabaseEnv {
   SUPABASE_SERVICE_ROLE_KEY: string;
 }
 
+type FetchFn = typeof fetch;
+
 export class SupabaseError extends Error {
   constructor(
     readonly status: number,
@@ -18,38 +20,67 @@ export class SupabaseError extends Error {
   }
 }
 
-function headers(env: SupabaseEnv): HeadersInit {
-  return {
-    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-    authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    "content-type": "application/json",
-  };
-}
-
 async function request<T>(
   env: SupabaseEnv,
   path: string,
   init: RequestInit = {},
+  fetchFn: FetchFn = fetch,
 ): Promise<T> {
-  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, {
+  const res = await fetchFn(`${env.SUPABASE_URL}/rest/v1/${path}`, {
     ...init,
-    headers: { ...headers(env), ...(init.headers ?? {}) },
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      "content-type": "application/json",
+      ...(init.headers ?? {}),
+    },
   });
   if (!res.ok) throw new SupabaseError(res.status, path.split("?")[0]);
   return (await res.json()) as T;
 }
 
-export function select<T>(env: SupabaseEnv, table: string, query: string): Promise<T[]> {
-  return request<T[]>(env, `${table}?${query}`);
+export function select<T>(
+  env: SupabaseEnv,
+  table: string,
+  query: string,
+  fetchFn: FetchFn = fetch,
+): Promise<T[]> {
+  return request<T[]>(env, `${table}?${query}`, {}, fetchFn);
 }
 
-export async function rpc<T>(
+export function insert<T>(
+  env: SupabaseEnv,
+  table: string,
+  row: Record<string, unknown>,
+  fetchFn: FetchFn = fetch,
+): Promise<T[]> {
+  return request<T[]>(
+    env,
+    table,
+    { method: "POST", body: JSON.stringify(row), headers: { Prefer: "return=representation" } },
+    fetchFn,
+  );
+}
+
+export function remove(
+  env: SupabaseEnv,
+  table: string,
+  query: string,
+  fetchFn: FetchFn = fetch,
+): Promise<unknown> {
+  return request<unknown>(
+    env,
+    `${table}?${query}`,
+    { method: "DELETE", headers: { Prefer: "return=representation" } },
+    fetchFn,
+  );
+}
+
+export function rpc<T>(
   env: SupabaseEnv,
   fn: string,
   args: Record<string, unknown>,
+  fetchFn: FetchFn = fetch,
 ): Promise<T> {
-  return request<T>(env, `rpc/${fn}`, {
-    method: "POST",
-    body: JSON.stringify(args),
-  });
+  return request<T>(env, `rpc/${fn}`, { method: "POST", body: JSON.stringify(args) }, fetchFn);
 }

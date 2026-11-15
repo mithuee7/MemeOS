@@ -21,13 +21,19 @@ Cloudflare D1 and R2 are not used.
 ## Current status
 
 Working in code:
-- Worker with `GET /api/health` and `GET /api/accounts`. Both use the Supabase REST API with the service-role key.
-- Parent-cycle prevention via the Postgres function `would_create_cycle` (tested against the live
-  database: self-loops and two-node cycles are blocked, valid edges are allowed).
+- Supabase Auth verification of bearer tokens, with an admin allow-list (`admin_users`).
+  Unauthenticated requests get 401, non-admins get 403. Tested.
+- Account API: `GET/POST /api/accounts`, `POST /api/accounts/:id/parents`,
+  `DELETE /api/accounts/:id/parents/:parentId`. All writes are admin-only and validated.
+- Parent-cycle prevention via the Postgres function `would_create_cycle`, checked before insert.
+- Public `GET /api/health`. Errors never expose secrets or upstream details.
+- Test suite: `npm test` (28 tests) runs the real Worker code against a fake Supabase.
+  The tests cover auth, admin checks, validation, duplicates, cycle blocking and secret leakage.
 
 Applied to Supabase:
 - Migration `supabase/migrations/20261115000000_memeos_init.sql` (applied as `memeos_init`).
-- 12 tables with RLS enabled. Advisors report no security errors; the only lints are informational
+- Migration `supabase/migrations/20261115000100_memeos_admin_auth.sql` (applied as `memeos_admin_auth`).
+- 13 tables with RLS enabled (12 core + `admin_users`). Advisors report no security errors; the only lints are informational
   "RLS enabled, no policy" notices, which is intended because only the backend should access data.
 - Private storage bucket `memeos-media`.
 
@@ -36,7 +42,7 @@ Not verified:
   policy blocks `*.supabase.co` and `workers.cloudflare.com`, so `wrangler dev` could not reach
   the database and `wrangler deploy` could not run from there. Run the checks below yourself.
 
-Not yet implemented: the React frontend, Supabase Auth, Apify discovery, OCR/classification,
+Not yet implemented: the React frontend, admin user provisioning UI, Apify discovery, OCR/classification,
 BRAT generation (PNG/MP4), Meta publishing, Meta audio matching, the approval queue,
 analytics, Groq and usage monitoring, and the automation job runner (`scheduled` is a stub).
 
@@ -47,11 +53,13 @@ analytics, Groq and usage monitoring, and the automation job runner (`scheduled`
    or run the SQL file in the Supabase SQL editor.
 3. Local development: copy `.dev.vars.example` to `.dev.vars` and set
    `SUPABASE_SERVICE_ROLE_KEY` (from Supabase dashboard → Project Settings → API). Then `npm run dev`.
-4. Production secrets, never committed:
+4. Grant yourself admin (run once in the Supabase SQL editor, using your own auth user id):
+   `insert into admin_users (user_id) values ('<your-auth-user-uuid>');`
+5. Production secrets, never committed:
    ```
    npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
    ```
-5. Deploy: `npm run deploy`
+6. Deploy: `npm run deploy`
 
 ## Security rules
 

@@ -8,11 +8,13 @@
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
     "db:push": "supabase db push",
-    "db:status": "supabase migration list"
+    "db:status": "supabase migration list",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250101.0",
     "typescript": "^5.6.0",
+    "vitest": "^2.1.9",
     "wrangler": "^3.90.0"
   }
 }
