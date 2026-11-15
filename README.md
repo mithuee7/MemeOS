@@ -71,6 +71,17 @@ through the admin-protected API. Other navigation items are marked "Soon".
 6. Deploy: `npm run deploy` (builds the website, then deploys the Worker with it).
    Live URL: https://memeos.mithbuilds.workers.dev
 
+## One-time encryption key
+
+Connections entered in Settings are encrypted with a key that exists only as a Worker secret:
+
+```
+openssl rand -base64 32                  # copy the output
+npx wrangler secret put CREDENTIALS_KEY  # paste it when prompted
+```
+
+Keep a copy of that key somewhere safe. If it is lost, saved connections cannot be decrypted and must be re-entered.
+
 ## Security rules
 
 - The service-role key is a Worker secret only. It must never appear in frontend code, logs or

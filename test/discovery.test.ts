@@ -36,14 +36,14 @@ describe("mapApifyItem", () => {
 describe("ApifyProvider", () => {
   it("does not call Apify without a token", async () => {
     const fetchFn = vi.fn();
-    const provider = new ApifyProvider({ ...ENV, APIFY_TOKEN: undefined }, fetchFn as never);
+    const provider = new ApifyProvider({ actorId: ENV.APIFY_ACTOR_ID, token: null }, fetchFn as never);
     await expect(provider.fetchRecentPosts("someone", 5)).rejects.toThrow("apify_not_configured");
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
   it("reports status codes only, never the token-bearing URL", async () => {
     const fetchFn = vi.fn(async () => new Response("nope", { status: 429 }));
-    const provider = new ApifyProvider(ENV, fetchFn as never);
+    const provider = new ApifyProvider({ actorId: ENV.APIFY_ACTOR_ID, token: ENV.APIFY_TOKEN }, fetchFn as never);
     const err = await provider.fetchRecentPosts("someone", 5).catch((e) => e);
     expect(err).toBeInstanceOf(ProviderError);
     expect(err.message).toBe("apify_request_failed_429");

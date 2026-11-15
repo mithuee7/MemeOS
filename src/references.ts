@@ -3,8 +3,9 @@ import { json, readJson } from "./http";
 import { ApifyEnv, ApifyProvider, ProviderNotConfigured, ingestReference } from "./discovery";
 import { SupabaseError, insert, patch, remove, select } from "./supabase";
 import { parseHandle, parseId } from "./validation";
+import { IntegrationsEnv, resolveSecret } from "./integrations";
 
-export interface ReferencesEnv extends ApifyEnv, AuthEnv {}
+export interface ReferencesEnv extends ApifyEnv, IntegrationsEnv {}
 
 type FetchFn = typeof fetch;
 
@@ -72,7 +73,9 @@ export async function runReferenceDiscovery(request: Request, env: ReferencesEnv
   const id = parseId(idRaw);
   if (!id) return json({ error: "invalid_id" }, 400);
   try {
-    const result = await ingestReference(env, id, new ApifyProvider(env, fetchFn), fetchFn);
+    const token = await resolveSecret(env, "apify");
+    const provider = new ApifyProvider({ actorId: env.APIFY_ACTOR_ID, token }, fetchFn);
+    const result = await ingestReference(env, id, provider, fetchFn);
     return json({ ok: true, ...result });
   } catch (err) {
     if (err instanceof ProviderNotConfigured) return json({ error: "apify_not_configured" }, 503);

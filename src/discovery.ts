@@ -46,19 +46,24 @@ export function mapApifyItem(item: Record<string, unknown>): SourcePost | null {
   };
 }
 
+export interface ApifyConfig {
+  actorId: string;
+  token: string | null;
+}
+
 export class ApifyProvider implements SourceProvider {
   constructor(
-    private env: ApifyEnv,
+    private config: ApifyConfig,
     private fetchFn: FetchFn = fetch,
   ) {}
 
   async fetchRecentPosts(handle: string, limit: number): Promise<SourcePost[]> {
-    if (!this.env.APIFY_TOKEN) throw new ProviderNotConfigured("apify");
+    if (!this.config.token) throw new ProviderNotConfigured("apify");
     const res = await this.fetchFn(
-      `https://api.apify.com/v2/acts/${this.env.APIFY_ACTOR_ID}/run-sync-get-dataset-items?token=${encodeURIComponent(this.env.APIFY_TOKEN)}`,
+      `https://api.apify.com/v2/acts/${this.config.actorId}/run-sync-get-dataset-items`,
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", authorization: `Bearer ${this.config.token}` },
         body: JSON.stringify({
           directUrls: [`https://www.instagram.com/${handle}/`],
           resultsType: "posts",

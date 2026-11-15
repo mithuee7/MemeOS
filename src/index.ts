@@ -1,8 +1,9 @@
 import { Env as AccountsEnv, addParent, createAccount, json, listAccounts, removeParent } from "./accounts";
 import { select } from "./supabase";
+import { IntegrationsEnv, checkIntegration, deleteIntegration, listIntegrations, saveIntegration } from "./integrations";
 import { ReferencesEnv, createReference, deleteReference, listReferences, runReferenceDiscovery, updateReference } from "./references";
 
-export interface Env extends AccountsEnv, ReferencesEnv {
+export interface Env extends AccountsEnv, ReferencesEnv, IntegrationsEnv {
   ASSETS: Fetcher;
 }
 
@@ -31,6 +32,16 @@ export default {
         const [, childId, parentId] = parents;
         if (method === "POST" && !parentId) return await addParent(request, env, childId);
         if (method === "DELETE" && parentId) return await removeParent(request, env, childId, parentId);
+        return json({ error: "method_not_allowed" }, 405);
+      }
+
+      if (pathname === "/api/integrations" && method === "GET") return await listIntegrations(request, env);
+      const integ = /^\/api\/integrations\/([a-z]+)(\/test)?$/.exec(pathname);
+      if (integ) {
+        const [, provider, test] = integ;
+        if (test && method === "POST") return await checkIntegration(request, env, provider);
+        if (!test && method === "PUT") return await saveIntegration(request, env, provider);
+        if (!test && method === "DELETE") return await deleteIntegration(request, env, provider);
         return json({ error: "method_not_allowed" }, 405);
       }
 

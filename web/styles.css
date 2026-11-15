@@ -103,3 +103,11 @@ th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: upp
 .row-actions { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
 .danger { color: var(--danger); }
 .bad { color: var(--danger); }
+
+/* Integrations */
+.integrations { display: grid; gap: 14px; margin-top: 20px; }
+.integration { border-top: 1px solid var(--border); padding-top: 14px; display: grid; gap: 10px; }
+.integration-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.pill.ok { color: var(--ok); border-color: rgba(126, 226, 168, 0.35); }
+.pill.failed { color: var(--danger); border-color: rgba(255, 107, 107, 0.35); }

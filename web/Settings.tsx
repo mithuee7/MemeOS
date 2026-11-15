@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
-import { Session, loadSession, saveSession, updatePassword } from "./auth";
+import { Session, loadSession, updatePassword } from "./auth";
+import { IntegrationsCard } from "./Integrations";
 
 export function SettingsPage({ session }: { session: Session }) {
   const [password, setPassword] = useState("");
@@ -48,6 +49,7 @@ export function SettingsPage({ session }: { session: Session }) {
         {done && <div className="alert ok" role="status">Password updated.</div>}
         <button className="primary" disabled={busy}>{busy ? "Saving…" : "Update password"}</button>
       </form>
+      <IntegrationsCard />
     </section>
   );
 }
