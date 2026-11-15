@@ -3,6 +3,7 @@ import { Session } from "./auth";
 import { ApiError, api } from "./api";
 import { SettingsPage } from "./Settings";
 import { DiscoveryPage } from "./Discovery";
+import { ApprovalQueue, ContentLibrary, SystemHealth } from "./Workspace";
 
 interface Account {
   id: number;
@@ -13,7 +14,7 @@ interface Account {
   created_at: string;
 }
 
-type Page = "overview" | "accounts" | "discovery" | "settings";
+type Page = "overview" | "accounts" | "discovery" | "queue" | "library" | "health" | "settings";
 
 export function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => void }) {
   const [page, setPage] = useState<Page>("accounts");
@@ -52,14 +53,14 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
           <NavItem label="Overview" active={page === "overview"} onClick={() => setPage("overview")} />
           <NavItem label="Accounts" active={page === "accounts"} onClick={() => setPage("accounts")} />
           <NavItem label="Discovery" active={page === "discovery"} onClick={() => setPage("discovery")} />
-          <NavItem label="Approval Queue" disabled />
-          <NavItem label="Content Library" disabled />
+          <NavItem label="Approval Queue" active={page === "queue"} onClick={() => setPage("queue")} />
+          <NavItem label="Content Library" active={page === "library"} onClick={() => setPage("library")} />
           <NavItem label="Meme Creator" disabled />
           <NavItem label="Scheduler" disabled />
           <NavItem label="Publishing History" disabled />
           <NavItem label="Analytics" disabled />
           <NavItem label="Automation" disabled />
-          <NavItem label="System Health" disabled />
+          <NavItem label="System Health" active={page === "health"} onClick={() => setPage("health")} />
           <NavItem label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
         </nav>
         <div className="sidebar-foot">
@@ -73,6 +74,9 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
         {page === "accounts" && <AccountsPage accounts={accounts} error={error} onChanged={load} />}
         {page === "settings" && <SettingsPage session={session} />}
         {page === "discovery" && <DiscoveryPage />}
+        {page === "queue" && <ApprovalQueue />}
+        {page === "library" && <ContentLibrary />}
+        {page === "health" && <SystemHealth />}
       </main>
     </div>
   );

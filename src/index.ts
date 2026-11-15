@@ -1,9 +1,11 @@
 import { Env as AccountsEnv, addParent, createAccount, json, listAccounts, removeParent } from "./accounts";
 import { select } from "./supabase";
+import { WorkspaceEnv } from "./workspace";
+import { routeWorkspace } from "./workspace-routes";
 import { IntegrationsEnv, checkIntegration, deleteIntegration, listIntegrations, saveIntegration } from "./integrations";
 import { ReferencesEnv, createReference, deleteReference, listReferences, runReferenceDiscovery, updateReference } from "./references";
 
-export interface Env extends AccountsEnv, ReferencesEnv, IntegrationsEnv {
+export interface Env extends AccountsEnv, ReferencesEnv, IntegrationsEnv, WorkspaceEnv {
   ASSETS: Fetcher;
 }
 
@@ -58,6 +60,9 @@ export default {
         if (!discover && method === "DELETE") return await deleteReference(request, env, id);
         return json({ error: "method_not_allowed" }, 405);
       }
+
+      const workspace = await routeWorkspace(request, env, pathname, method);
+      if (workspace) return workspace;
 
       if (pathname.startsWith("/api/")) return json({ error: "not_found" }, 404);
 
