@@ -1,17 +1,16 @@
 name = "memeos"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
-compatibility_flags = ["nodejs_compat"]
 
-[[d1_databases]]
-binding = "MEMEOS_DB"
-database_name = "memeos"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
-migrations_dir = "migrations"
+# Non-secret configuration. The Supabase project URL is public.
+[vars]
+SUPABASE_URL = "https://voaglopdlyvsohlaefxz.supabase.co"
 
-[[r2_buckets]]
-binding = "MEDIA"
-bucket_name = "memeos-media"
+# Secrets (set with `wrangler secret put`, never committed):
+#   SUPABASE_SERVICE_ROLE_KEY   required, server-side only
+#   APIFY_TOKEN                 later
+#   GROQ_API_KEY                later
+#   META_APP_SECRET             later
 
 [triggers]
 crons = ["*/15 * * * *"]

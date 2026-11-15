@@ -1,43 +1,38 @@
-export interface Env {
-  MEMEOS_DB: D1Database;
-  MEDIA: R2Bucket;
+import { SupabaseEnv, SupabaseError, rpc, select } from "./supabase";
+
+export interface Env extends SupabaseEnv {
+  // Cloudflare environment variables / secrets. No D1 or R2 bindings.
 }
 
-// Parent-cycle check: returns true if making `parentId` a parent of `childId`
-// would create a cycle, i.e. childId is already an ancestor of parentId.
+// Parent-cycle check via the Postgres function `would_create_cycle`
+// (see supabase/migrations). Returns true if the edge would create a cycle.
 export async function wouldCreateCycle(
-  db: D1Database,
+  env: Env,
   childId: number,
   parentId: number,
 ): Promise<boolean> {
-  if (childId === parentId) return true;
-  const rows = await db
-    .prepare(
-      `WITH RECURSIVE ancestors(id) AS (
-         SELECT parent_id FROM account_parents WHERE child_id = ?
-         UNION
-         SELECT ap.parent_id FROM account_parents ap JOIN ancestors a ON ap.child_id = a.id
-       )
-       SELECT 1 FROM ancestors WHERE id = ? LIMIT 1`,
-    )
-    .bind(parentId, childId)
-    .all();
-  return rows.results.length > 0;
+  return rpc<boolean>(env, "would_create_cycle", {
+    child_id: childId,
+    parent_id: parentId,
+  });
 }
 
 async function health(env: Env): Promise<Response> {
-  const paused = await env.MEMEOS_DB.prepare(
-    "SELECT value FROM global_settings WHERE key = 'paused'",
-  ).first<{ value: string }>();
-  return json({ ok: true, paused: paused?.value === "true" });
+  const rows = await select<{ value: string }>(
+    env,
+    "global_settings",
+    "select=value&key=eq.paused",
+  );
+  return json({ ok: true, paused: rows[0]?.value === "true" });
 }
 
 async function listAccounts(env: Env): Promise<Response> {
-  const { results } = await env.MEMEOS_DB.prepare(
-    `SELECT id, handle, discovery_enabled, posts_per_day, audio_fallback
-     FROM instagram_accounts ORDER BY handle`,
-  ).all();
-  return json({ accounts: results });
+  const accounts = await select(
+    env,
+    "instagram_accounts",
+    "select=id,handle,discovery_enabled,posts_per_day,audio_fallback&order=handle",
+  );
+  return json({ accounts });
 }
 
 function json(body: unknown, status = 200): Response {
@@ -58,14 +53,15 @@ export default {
         return await listAccounts(env);
       }
       return json({ error: "not_found" }, 404);
-    } catch {
-      // Never leak internals to the client; detailed errors belong in system_logs.
-      return json({ error: "internal_error" }, 500);
+    } catch (err) {
+      // Never leak internals or secrets to the client; details belong in system_logs.
+      const status = err instanceof SupabaseError ? 502 : 500;
+      return json({ error: status === 502 ? "upstream_error" : "internal_error" }, status);
     }
   },
 
   async scheduled(_controller: ScheduledController, _env: Env): Promise<void> {
-    // Automation engine entry point: will drain automation_jobs (discovery,
-    // generation, audio matching, publishing). Not yet implemented.
+    // Automation engine entry point: will drain automation_jobs.
+    // Not yet implemented.
   },
 } satisfies ExportedHandler<Env>;
