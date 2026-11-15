@@ -2,10 +2,17 @@ name = "memeos"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
-# Non-secret configuration. The Supabase project URL is public.
+# The built React app (dist/) is served as static assets. Requests that don't match
+# a file fall through to the Worker, which serves index.html for app routes and
+# handles everything under /api.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "none"
+
+# Non-secret configuration. The Supabase project URL and anon key are public by design.
 [vars]
 SUPABASE_URL = "https://voaglopdlyvsohlaefxz.supabase.co"
-# Anon key is public by design (it is shipped to browsers). Used only to verify user tokens.
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvYWdsb3BkbHl2c29obGFlZnh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NDkxMTYsImV4cCI6MjExMDMyNTExNn0.zTsG284CVb_77aEcnEjFMjgAQ-XAHVXYg_fKg1GNw10"
 
 # Secrets (set with `wrangler secret put`, never committed):

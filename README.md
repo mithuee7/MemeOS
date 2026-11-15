@@ -42,9 +42,18 @@ Not verified:
   policy blocks `*.supabase.co` and `workers.cloudflare.com`, so `wrangler dev` could not reach
   the database and `wrangler deploy` could not run from there. Run the checks below yourself.
 
-Not yet implemented: the React frontend, admin user provisioning UI, Apify discovery, OCR/classification,
+Not yet implemented: the Discovery, Approval, Library, Creator, Scheduler, Publishing, Analytics, Automation, System Health and Settings pages; parent-account UI; Apify discovery, OCR/classification,
 BRAT generation (PNG/MP4), Meta publishing, Meta audio matching, the approval queue,
 analytics, Groq and usage monitoring, and the automation job runner (`scheduled` is a stub).
+
+## Website
+
+The React app lives in `web/` (Vite). `npm run build` writes it to `dist/`, and the Worker
+serves it at the root URL. Every other path under `/api` is the JSON API.
+
+Pages: sign in, sign up, password reset, dashboard overview (accounts count, other counts show
+"not connected" until those features exist), and an Accounts page that adds and lists accounts
+through the admin-protected API. Other navigation items are marked "Soon".
 
 ## Setup
 
@@ -59,7 +68,8 @@ analytics, Groq and usage monitoring, and the automation job runner (`scheduled`
    ```
    npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
    ```
-6. Deploy: `npm run deploy`
+6. Deploy: `npm run deploy` (builds the website, then deploys the Worker with it).
+   Live URL: https://memeos.mithbuilds.workers.dev
 
 ## Security rules
 
