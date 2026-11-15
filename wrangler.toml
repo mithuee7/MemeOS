@@ -23,3 +23,7 @@ SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 [triggers]
 crons = ["*/15 * * * *"]
+
+# Wrangler runs this before every deploy, so the website is always built first.
+[build]
+command = "npm run build"
