@@ -84,3 +84,40 @@ export function rpc<T>(
 ): Promise<T> {
   return request<T>(env, `rpc/${fn}`, { method: "POST", body: JSON.stringify(args) }, fetchFn);
 }
+
+// Insert rows, silently skipping any that violate a unique constraint.
+// `onConflict` names the unique column(s), e.g. "provider_post_id".
+export function insertIgnoreDuplicates(
+  env: SupabaseEnv,
+  table: string,
+  rows: Record<string, unknown>[],
+  onConflict: string,
+  fetchFn: FetchFn = fetch,
+): Promise<unknown[]> {
+  if (rows.length === 0) return Promise.resolve([]);
+  return request<unknown[]>(
+    env,
+    `${table}?on_conflict=${encodeURIComponent(onConflict)}`,
+    {
+      method: "POST",
+      body: JSON.stringify(rows),
+      headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+    },
+    fetchFn,
+  );
+}
+
+export function patch(
+  env: SupabaseEnv,
+  table: string,
+  query: string,
+  body: Record<string, unknown>,
+  fetchFn: FetchFn = fetch,
+): Promise<unknown[]> {
+  return request<unknown[]>(
+    env,
+    `${table}?${query}`,
+    { method: "PATCH", body: JSON.stringify(body), headers: { Prefer: "return=representation" } },
+    fetchFn,
+  );
+}

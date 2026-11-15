@@ -1,7 +1,8 @@
 import { Env as AccountsEnv, addParent, createAccount, json, listAccounts, removeParent } from "./accounts";
 import { select } from "./supabase";
+import { ReferencesEnv, createReference, deleteReference, listReferences, runReferenceDiscovery, updateReference } from "./references";
 
-export interface Env extends AccountsEnv {
+export interface Env extends AccountsEnv, ReferencesEnv {
   ASSETS: Fetcher;
 }
 
@@ -30,6 +31,20 @@ export default {
         const [, childId, parentId] = parents;
         if (method === "POST" && !parentId) return await addParent(request, env, childId);
         if (method === "DELETE" && parentId) return await removeParent(request, env, childId, parentId);
+        return json({ error: "method_not_allowed" }, 405);
+      }
+
+      if (pathname === "/api/references") {
+        if (method === "GET") return await listReferences(request, env);
+        if (method === "POST") return await createReference(request, env);
+        return json({ error: "method_not_allowed" }, 405);
+      }
+      const ref = /^\/api\/references\/(\d+)(\/discover)?$/.exec(pathname);
+      if (ref) {
+        const [, id, discover] = ref;
+        if (discover && method === "POST") return await runReferenceDiscovery(request, env, id);
+        if (!discover && method === "PATCH") return await updateReference(request, env, id);
+        if (!discover && method === "DELETE") return await deleteReference(request, env, id);
         return json({ error: "method_not_allowed" }, 405);
       }
 

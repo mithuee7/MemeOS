@@ -1,17 +1,13 @@
 import { AuthEnv, requireAdmin } from "./auth";
 import { SupabaseError, insert, remove, rpc, select } from "./supabase";
 import { parseHandle, parseId } from "./validation";
+import { json, readJson } from "./http";
 
 export interface Env extends AuthEnv {}
 
 type FetchFn = typeof fetch;
 
-export function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" },
-  });
-}
+export { json, readJson };
 
 const ACCOUNT_COLUMNS =
   "select=id,handle,discovery_enabled,posts_per_day,audio_fallback,created_at&order=handle";
@@ -23,13 +19,6 @@ async function authorise(request: Request, env: Env, fetchFn: FetchFn): Promise<
   return json({ error: auth.status === 401 ? "unauthorised" : "forbidden" }, auth.status);
 }
 
-async function readJson(request: Request): Promise<unknown | null> {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
-}
 
 export async function listAccounts(request: Request, env: Env, fetchFn: FetchFn = fetch): Promise<Response> {
   const denied = await authorise(request, env, fetchFn);
