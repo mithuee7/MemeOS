@@ -85,3 +85,40 @@ export function loadSession(): Session | null {
 export function clearSession(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
+
+// Sets a new password for the signed-in user. Works for the recovery session
+// created by a reset link, and for normal sessions in Settings.
+export async function updatePassword(accessToken: string, password: string): Promise<string> {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      authorization: `Bearer ${accessToken}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    throw new Error((data.msg as string) || (data.error_description as string) || "Couldn't update password.");
+  }
+  const user = (await res.json()) as { email?: string };
+  return user.email ?? "";
+}
+
+// Reads a recovery session from the URL hash that Supabase adds to reset links,
+// then removes it from the address bar.
+export function sessionFromRecoveryHash(): Session | null {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  if (params.get("type") !== "recovery") return null;
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (!accessToken || !refreshToken) return null;
+  history.replaceState(null, "", window.location.pathname);
+  return {
+    accessToken,
+    refreshToken,
+    expiresAt: Date.now() + Number(params.get("expires_in") ?? 3600) * 1000,
+    email: "",
+  };
+}

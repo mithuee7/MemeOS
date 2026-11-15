@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Session } from "./auth";
 import { ApiError, api } from "./api";
+import { SettingsPage } from "./Settings";
 
 interface Account {
   id: number;
@@ -11,7 +12,7 @@ interface Account {
   created_at: string;
 }
 
-type Page = "overview" | "accounts";
+type Page = "overview" | "accounts" | "settings";
 
 export function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => void }) {
   const [page, setPage] = useState<Page>("accounts");
@@ -58,7 +59,7 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
           <NavItem label="Analytics" disabled />
           <NavItem label="Automation" disabled />
           <NavItem label="System Health" disabled />
-          <NavItem label="Settings" disabled />
+          <NavItem label="Settings" active={page === "settings"} onClick={() => setPage("settings")} />
         </nav>
         <div className="sidebar-foot">
           <div className="muted small">{session.email}</div>
@@ -69,6 +70,7 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
       <main className="main">
         {page === "overview" && <Overview accounts={accounts} />}
         {page === "accounts" && <AccountsPage accounts={accounts} error={error} onChanged={load} />}
+        {page === "settings" && <SettingsPage session={session} />}
       </main>
     </div>
   );
