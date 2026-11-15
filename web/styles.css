@@ -94,3 +94,12 @@ th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: upp
   .sidebar-foot { display: none; }
   .add-row { flex-direction: column; }
 }
+
+/* Discovery and shared controls */
+.secondary { padding: 8px 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); font-size: 13px; }
+.secondary:hover:not(:disabled) { border-color: #3a3a42; }
+.toggle { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); font-size: 12px; }
+.toggle[aria-pressed="true"] { color: var(--accent); border-color: rgba(184, 242, 92, 0.35); }
+.row-actions { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+.danger { color: var(--danger); }
+.bad { color: var(--danger); }

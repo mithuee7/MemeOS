@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Session } from "./auth";
 import { ApiError, api } from "./api";
 import { SettingsPage } from "./Settings";
+import { DiscoveryPage } from "./Discovery";
 
 interface Account {
   id: number;
@@ -12,7 +13,7 @@ interface Account {
   created_at: string;
 }
 
-type Page = "overview" | "accounts" | "settings";
+type Page = "overview" | "accounts" | "discovery" | "settings";
 
 export function Dashboard({ session, onSignOut }: { session: Session; onSignOut: () => void }) {
   const [page, setPage] = useState<Page>("accounts");
@@ -50,7 +51,7 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
         <nav>
           <NavItem label="Overview" active={page === "overview"} onClick={() => setPage("overview")} />
           <NavItem label="Accounts" active={page === "accounts"} onClick={() => setPage("accounts")} />
-          <NavItem label="Discovery" disabled />
+          <NavItem label="Discovery" active={page === "discovery"} onClick={() => setPage("discovery")} />
           <NavItem label="Approval Queue" disabled />
           <NavItem label="Content Library" disabled />
           <NavItem label="Meme Creator" disabled />
@@ -71,6 +72,7 @@ export function Dashboard({ session, onSignOut }: { session: Session; onSignOut:
         {page === "overview" && <Overview accounts={accounts} />}
         {page === "accounts" && <AccountsPage accounts={accounts} error={error} onChanged={load} />}
         {page === "settings" && <SettingsPage session={session} />}
+        {page === "discovery" && <DiscoveryPage />}
       </main>
     </div>
   );
